@@ -14,15 +14,15 @@ def main():
             break
         print("Invalid algorithm. Please choose again.")
 
+    # If algorithm requires a heuristic, prompt user to select one
     if algo in ["a*", "greedy"]:
-        # Prompt user to select a heuristic for A* or Greedy algorithms
         while True:
             heuristic = input("Choose heuristic (Manhattan, Euclidean, Chebyshev): ").lower()
             if heuristic in ["manhattan", "euclidean", "chebyshev"]:
                 break
             print("Invalid heuristic. Please choose again.")
 
-    # Prompt user to decide whether to save an animated GIF of the solving process
+    # Ask user if they want to save an animated GIF of the solving process
     while True:
         save_gif_input = input("Do you want to save an animated GIF of the solving process? (yes/no): ").lower()
         if save_gif_input in ["yes", "y"]:
@@ -34,7 +34,7 @@ def main():
         else:
             print("Invalid input. Please enter 'yes' or 'no'.")
 
-    # If GIF saving is enabled, prompt for filename
+    # If GIF saving is enabled, prompt for filename and ensure it ends with .gif
     gif_filename = ""
     if save_gif:
         gif_filename = input("Enter GIF filename (e.g., solution.gif): ")
@@ -45,18 +45,21 @@ def main():
 
     # Iterate over all maze files provided as arguments
     for i in range(1, len(sys.argv)):
-        m = Maze(sys.argv[i])
+        m = Maze(sys.argv[i])  # Create Maze instance from file
         print(f"Maze {i}:")
-        m.print()
+        m.print()              # Print the maze before solving
         print("Solving...")
 
         # Start timing the solving process
         start_time = time.perf_counter()
         if algo in ["a*", "greedy"]:
+            # Pass heuristic if required
             m.solve(algo, method=heuristic, save_gif=save_gif)
         else:
             m.solve(algo, save_gif=save_gif)
         end_time = time.perf_counter()
+
+        # Save animated GIF if requested
         if save_gif:
             m.save_solution_gif(gif_path=f"maze_{i}_{gif_filename}")
 

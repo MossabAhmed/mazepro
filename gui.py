@@ -12,11 +12,11 @@ class MazeSolverGUI:
         self.root = root
         self.root.title("Maze Solver")
         self.setup_ui()
-        self.cell_size = 30  # حجم الخلية بالبكسل
+        self.cell_size = 30  # Size of each cell in pixels
         self.maze = None # Initialize maze to None
         
     def setup_ui(self):
-        # Control Frame
+        # Create the control frame for buttons and input fields
         control_frame = tk.Frame(self.root)
         control_frame.pack(pady=10, fill=tk.X)
         
@@ -33,28 +33,29 @@ class MazeSolverGUI:
 
         tk.Button(control_frame, text="Generate Maze", command=self.generate_maze).pack(side=tk.LEFT, padx=5)
         
-        # Original Buttons
+        # Button to load maze from file
         tk.Button(control_frame, text="Load Maze", command=self.load_maze).pack(side=tk.LEFT, padx=5)
         
+        # Algorithm selection dropdown
         self.algo_var = tk.StringVar(value="bfs")
         tk.OptionMenu(control_frame, self.algo_var, "a*", "bfs", "dfs", "greedy", "uniform", "bidirectional").pack(side=tk.LEFT, padx=5)
 
+        # Heuristic selection (enabled only for A* and Greedy)
         tk.Label(control_frame, text="Heuristic:").pack(side=tk.LEFT, padx=2)
         self.heuristic_var = tk.StringVar(value="manhattan")
         self.heuristic_combobox = ttk.Combobox(control_frame, textvariable=self.heuristic_var, 
                                             values=["manhattan", "euclidean", "chebyshev"], state="disabled", width=10)
         self.heuristic_combobox.pack(side=tk.LEFT, padx=2)
-        self.algo_var.trace("w", self.on_algo_selected)  # Trace changes to the algorithm selection
-        # Initially update heuristic options based on default algo
-        self.on_algo_selected()
+        self.algo_var.trace("w", self.on_algo_selected)  # Update heuristic options when algorithm changes
+        self.on_algo_selected() # Set initial heuristic state
         
+        # Buttons for solving and saving
         tk.Button(control_frame, text="Solve", command=self.solve_maze).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Solve with GIF", command=lambda: self.solve_maze(solve_gif=True)).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Save Solution", command=self.save_solution).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Save Solution GIF", command=self.save_solution_gif).pack(side=tk.LEFT, padx=5)
 
-        
-        # Canvas with Scrollbars
+        # Canvas with scrollbars for displaying the maze
         self.canvas_frame = tk.Frame(self.root)
         self.canvas_frame.pack(expand=True, fill=tk.BOTH)
         
@@ -76,6 +77,7 @@ class MazeSolverGUI:
             self.heuristic_combobox.config(state="disabled")
         
     def load_maze(self):
+        # Load a maze from a text file
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
         if file_path:
             try:
@@ -86,10 +88,12 @@ class MazeSolverGUI:
                 messagebox.showerror("Error", str(e))
 
     def generate_maze(self):
+        # Generate a new random maze with the specified dimensions
         try:
             width = int(self.width_entry.get())
             height = int(self.height_entry.get())
 
+            # Ensure dimensions are odd and >= 3 for proper maze generation
             if width < 3 or height < 3 or width % 2 == 0 or height % 2 == 0:
                 messagebox.showerror("Invalid Dimensions", "Width and Height must be odd numbers greater than or equal to 3 for proper maze generation.")
                 return
@@ -103,13 +107,14 @@ class MazeSolverGUI:
             messagebox.showerror("Maze Generation Error", str(e))
     
     def adjust_canvas_size(self):
+        # Adjust the canvas scroll region based on the maze size
         if hasattr(self, 'maze'):
             canvas_width = self.maze.width * self.cell_size
             canvas_height = self.maze.height * self.cell_size
             self.canvas.config(scrollregion=(0, 0, canvas_width, canvas_height))
     
     def draw_maze(self):
-        """يرسم المتاهة على Canvas"""
+        """Draws the maze on the Canvas."""
         self.canvas.delete("all")
         
         if not hasattr(self, 'maze') or self.maze is None:
@@ -130,13 +135,12 @@ class MazeSolverGUI:
                     self.canvas.create_rectangle(x1, y1, x2, y2, fill="#EDF0FC", outline="") # Off-white empty cell
     
     def solve_maze(self, solve_gif=False):
+        # Solve the maze using the selected algorithm and heuristic
         if not hasattr(self, 'maze') or self.maze is None:
             messagebox.showwarning("Warning", "Please load or generate a maze first!")
             return
             
         # Clear the canvas by redrawing the maze in its initial state
-        
-
         self.draw_maze()
 
         def solve_thread():
@@ -163,10 +167,11 @@ class MazeSolverGUI:
             except Exception as e:
                 messagebox.showerror("Error", f"An error occurred: {e}")
             
+        # Run the solving process in a separate thread to keep the GUI responsive
         threading.Thread(target=solve_thread, daemon=True).start()
     
     def draw_solution(self):
-        """يرسم الحل على المتاهة"""
+        """Draws the solution path and explored nodes on the maze."""
         if hasattr(self, 'maze') and self.maze.solution:
             # First, draw explored nodes (if any)
             if hasattr(self.maze, 'explored'):
@@ -186,6 +191,7 @@ class MazeSolverGUI:
                     self.canvas.create_rectangle(x1, y1, x2, y2, fill="#DCF071", outline="") # Yellow solution
     
     def save_solution(self):
+        # Save the current maze solution as a PNG image
         if hasattr(self, 'maze') and self.maze.solution:
             file_path = filedialog.asksaveasfilename(defaultextension=".png")
             if file_path.endswith(".png"):
@@ -194,6 +200,7 @@ class MazeSolverGUI:
                 messagebox.showerror("Error", "Please save the file with a .png extension.")
 
     def save_solution_gif(self):
+        # Save the solution process as an animated GIF
         if hasattr(self, 'maze') and self.maze.solution:
             file_path = filedialog.asksaveasfilename(defaultextension=".gif")
             if file_path.endswith(".gif"):
@@ -202,6 +209,7 @@ class MazeSolverGUI:
                 messagebox.showerror("Error", "Please save the file with a .gif extension.")
 
 if __name__ == "__main__":
+    # Start the Tkinter main loop
     root = tk.Tk()
     root.geometry("800x600")
     app = MazeSolverGUI(root)

@@ -1,10 +1,11 @@
 from PIL import Image, ImageDraw, ImageTk
 import imageio
-from node import Node # Assuming node.py is in the same directory or accessible in PYTHONPATH
+from node import Node
 import random
 
 class Maze():
     def __init__(self, filename=None, width=None, height=None):
+        # Initialize maze state and statistics
         self.solution = None      # To store the solution path
         self.co_path = 0          # To count the solution steps
         self.frames = []          # For GIF frames
@@ -12,7 +13,7 @@ class Maze():
         self.explored = set()     # To keep track of explored nodes
 
         if filename:
-            # Read from file
+            # Load maze from file
             with open(filename) as f:
                 contents = f.read()
 
@@ -43,9 +44,8 @@ class Maze():
             if not hasattr(self, 'start') or not hasattr(self, 'goal'):
                 raise Exception("maze must have exactly one start and one goal point")
 
-
         elif width and height:
-            # Generate new maze
+            # Generate a new maze with given dimensions
             self.width = width
             self.height = height
             # Initialize all cells as walls
@@ -150,7 +150,6 @@ class Maze():
         self.explored = set()
         self.frames = [] # Clear frames for new GIF generation
 
-
     def print(self):
         # Print the maze with solution and explored nodes if available
         solution = self.solution[1] if self.solution is not None else None
@@ -198,7 +197,7 @@ class Maze():
         return result
 
     def heuristic(self, state, method):
-        """Computes the Manhattan distance from the given state to the goal."""
+        """Computes the heuristic distance from the given state to the goal."""
         row, col = state
         goal_row, goal_col = self.goal
         if method == "manhattan":
@@ -214,42 +213,42 @@ class Maze():
         Optionally saves the solution process as a GIF.
         """
         # Reset maze state before starting a new solve operation
-        self.reset_state() # Call the new reset_state method here
+        self.reset_state()
 
         # Initialize frontier with the starting position
         start = Node(state=self.start, parent=None, action=None, score_h=self.heuristic(self.start, method))
-        if algo == "bidirectional": # إضافة شرط لاستدعاء الدالة الجديدة
+        if algo == "bidirectional": # Special case for bidirectional search
             self.solve_bidirectional(save_gif=save_gif)
             return
 
         if algo == "bfs":
-            from frontiers import QueueFrontier #
-            frontier = QueueFrontier() #
+            from frontiers import QueueFrontier 
+            frontier = QueueFrontier() 
 
         elif algo == "dfs":
-            from frontiers import StackFrontier #
-            frontier = StackFrontier() #
+            from frontiers import StackFrontier 
+            frontier = StackFrontier() 
 
         elif algo == "a*":
-            from frontiers import PriorityQueueFrontierforAStar #
-            frontier = PriorityQueueFrontierforAStar() #
+            from frontiers import PriorityQueueFrontierforAStar 
+            frontier = PriorityQueueFrontierforAStar() 
 
         elif algo == "greedy":
-            from frontiers import PriorityQueueFrontierforGreedy #
-            frontier = PriorityQueueFrontierforGreedy() #
+            from frontiers import PriorityQueueFrontierforGreedy 
+            frontier = PriorityQueueFrontierforGreedy() 
 
         elif algo == "uniform":
-            from frontiers import PriorityQueueFrontierforUniformCost #
-            frontier = PriorityQueueFrontierforUniformCost() #
+            from frontiers import PriorityQueueFrontierforUniformCost 
+            frontier = PriorityQueueFrontierforUniformCost() 
         
-        # self.frames = [] # This line is moved to reset_state()
+        # Add the start node to the frontier
         frontier.add(start)
         
         # self.explored = set() # This line is moved to reset_state()
 
         if save_gif:
             self.frames.append(self._get_current_image(show_explored=True))
-        # Keep looping until solution found
+        # Main loop to search for the solution
 
         while True:
             # If nothing left in frontier, then no path exists
@@ -287,7 +286,6 @@ class Maze():
                 if not frontier.contains_state(state) and state not in self.explored:
                     score_g = node.score_g + 1
                     if algo in ["a*", "greedy"]:
-                        
                         # For A* and Greedy, we need to calculate the heuristic score
                         score_h = self.heuristic(state, method)
                     else:
@@ -296,13 +294,11 @@ class Maze():
                     child = Node(state=state, parent=node, action=action, score_g=score_g, score_h=score_h) 
                     frontier.add(child)
 
-
     def solve_bidirectional(self, save_gif=False):
         """Solves the maze using bidirectional BFS."""
-        self.reset_state() # تأكد من إعادة تعيين الحالة
+        self.reset_state() # Ensure state is reset
 
         # Initialize frontiers for both directions
-        # BFS يستخدم QueueFrontier
         from frontiers import QueueFrontier
         frontier_start = QueueFrontier()
         frontier_goal = QueueFrontier()
@@ -315,81 +311,63 @@ class Maze():
         frontier_goal.add(goal_node)
 
         # To keep track of explored nodes and their corresponding Node objects from both sides
-        # نستخدم القواميس لتخزين Node object للوصول إلى الـ parent لاحقًا
         explored_start_nodes = {self.start: start_node}
         explored_goal_nodes = {self.goal: goal_node}
         
-        # for GIF visualization
+        # For GIF visualization
         if save_gif:
             self.frames.append(self._get_current_image(show_explored=True))
 
-
         while not frontier_start.empty() and not frontier_goal.empty():
+            # Alternate expansion between start and goal frontiers
+
             # Expand from start side
-            # يجب أن نتأكد أننا نوسع الأقل عمقًا أولاً أو بالتناوب للحفاظ على كفاءة Bidirectional BFS
-            # في هذا التنفيذ، سنتناوب خطوة بخطوة بين الاتجاهين
-            
-            # ----------------------------------------
-            #         توسيع من جانب البداية
-            # ----------------------------------------
             current_start = frontier_start.remove()
-            # أضف العقدة إلى self.explored العامة للعرض المرئي فقط
             self.explored.add(current_start.state) 
-            self.num_explored += 1 # زيادة عدد العقد المستكشفة
+            self.num_explored += 1 # Increment explored count
 
             if save_gif:
-                # نلتقط الصورة بعد استكشاف العقدة الحالية
                 self.frames.append(self._get_current_image(show_explored=True))
 
-            # التحقق من الالتقاء بعد توسيع العقدة الحالية
+            # Check for meeting point
             if current_start.state in explored_goal_nodes:
-                # وجدنا نقطة التقاء!
                 meet_node_from_goal_side = explored_goal_nodes[current_start.state]
                 self._reconstruct_bidirectional_path(current_start, meet_node_from_goal_side)
                 if save_gif:
                     self.frames.append(self._get_current_image(show_solution=True, show_explored=True))
                 return
 
-            # أضف الجيران إلى طابور البداية
+            # Add neighbors to start frontier
             for action, state in self.neighbors(current_start.state):
-                # إذا لم يتم زيارة الجار من جانب البداية
                 if state not in explored_start_nodes:
                     new_node = Node(state=state, parent=current_start, action=action)
-                    explored_start_nodes[state] = new_node # تخزين العقدة
+                    explored_start_nodes[state] = new_node
                     frontier_start.add(new_node)
-                    # هنا لا نضعها في self.explored بعد، حتى يتم استكشافها فعليًا
 
-            # ----------------------------------------
-            #         توسيع من جانب الهدف
-            # ----------------------------------------
+            # Expand from goal side
             current_goal = frontier_goal.remove()
-            # أضف العقدة إلى self.explored العامة للعرض المرئي فقط
             self.explored.add(current_goal.state)
-            self.num_explored += 1 # زيادة عدد العقد المستكشفة
+            self.num_explored += 1
 
             if save_gif:
-                # نلتقط الصورة بعد استكشاف العقدة الحالية
                 self.frames.append(self._get_current_image(show_explored=True))
 
-            # التحقق من الالتقاء بعد توسيع العقدة الحالية
+            # Check for meeting point
             if current_goal.state in explored_start_nodes:
-                # وجدنا نقطة التقاء!
                 meet_node_from_start_side = explored_start_nodes[current_goal.state]
                 self._reconstruct_bidirectional_path(meet_node_from_start_side, current_goal)
                 if save_gif:
                     self.frames.append(self._get_current_image(show_solution=True, show_explored=True))
                 return
 
-            # أضف الجيران إلى طابور الهدف
+            # Add neighbors to goal frontier
             for action, state in self.neighbors(current_goal.state):
-                # إذا لم يتم زيارة الجار من جانب الهدف
                 if state not in explored_goal_nodes:
                     new_node = Node(state=state, parent=current_goal, action=action)
-                    explored_goal_nodes[state] = new_node # تخزين العقدة
+                    explored_goal_nodes[state] = new_node
                     frontier_goal.add(new_node)
-                    # هنا لا نضعها في self.explored بعد، حتى يتم استكشافها فعليًا
         
-        # إذا خرجنا من الحلقة ولم نجد حلاً
+        # If no solution is found
         raise Exception("No solution found by bidirectional search.")
 
     def _reconstruct_bidirectional_path(self, node_from_start_side, node_from_goal_side):
@@ -402,12 +380,12 @@ class Maze():
         while current.parent is not None:
             path_start.append(current.action)
             current = current.parent
-        path_start.reverse() # عكس المسار ليكون من البداية إلى نقطة الالتقاء
+        path_start.reverse() # Reverse to get path from start to meeting point
 
         path_goal = []
         current = node_from_goal_side
         while current.parent is not None:
-            # يجب عكس الإجراءات للمسار القادم من الهدف
+            # Reverse actions for the path from the goal side
             if current.action == "up":
                 path_goal.append("down")
             elif current.action == "down":
@@ -417,11 +395,10 @@ class Maze():
             elif current.action == "right":
                 path_goal.append("left")
             current = current.parent
-        # path_goal لا تحتاج إلى عكس إضافي هنا لأننا عكسنا الاتجاه بالفعل عند الإضافة
 
         full_path_actions = path_start + path_goal
 
-        # إعادة بناء المسار الفعلي للخلايا
+        # Reconstruct the full path of cells
         full_path_cells = []
         current_state = self.start
         full_path_cells.append(current_state)
@@ -436,10 +413,9 @@ class Maze():
                 current_state = (current_state[0], current_state[1] + 1)
             full_path_cells.append(current_state)
         
-        # تخزين الحل في خصائص المتاهة
+        # Store the solution in the maze properties
         self.solution = (full_path_actions, full_path_cells)
         self.co_path = len(full_path_actions)
-
 
     def _get_current_image(self, show_solution=False, show_explored=False):
         """
