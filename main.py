@@ -71,6 +71,13 @@ def main():
         print("Solution:")
         m.print()
         m.output_image("maze_solution.png", show_explored=True)  # Save the solution as an image
+        save_maze = input("Do you want to save the maze to a file? (yes/no): ").lower()
+        if save_maze in ["yes", "y"]:
+            filename = input("Enter filename to save the maze (e.g., maze.txt): ")
+            if not filename.endswith(".txt"):
+                filename += ".txt"
+            m.save_to_file(filename)
+
         
 
     else:

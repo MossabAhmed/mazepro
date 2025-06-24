@@ -54,6 +54,7 @@ class MazeSolverGUI:
         tk.Button(control_frame, text="Solve with GIF", command=lambda: self.solve_maze(solve_gif=True)).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Save Solution", command=self.save_solution).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Save Solution GIF", command=self.save_solution_gif).pack(side=tk.LEFT, padx=5)
+        tk.Button(control_frame, text="Save maze to file", command=self.save_maze).pack(side=tk.LEFT, padx=5)
 
         # Canvas with scrollbars for displaying the maze
         self.canvas_frame = tk.Frame(self.root)
@@ -207,6 +208,17 @@ class MazeSolverGUI:
                 self.maze.save_solution_gif(gif_path=file_path)
             else:
                 messagebox.showerror("Error", "Please save the file with a .gif extension.")
+
+    def save_maze(self):
+        # Save the current maze to a text file
+        if not hasattr(self, 'maze'):
+            messagebox.showwarning("Warning", "Please load or generate a maze first!")
+            return
+        file_path = filedialog.asksaveasfilename(defaultextension=".txt")
+        if file_path.endswith(".txt"):
+            self.maze.save_to_file(file_path)
+        else:
+            messagebox.showerror("Error", "Please save the file with a .txt extension.")
 
 if __name__ == "__main__":
     # Start the Tkinter main loop

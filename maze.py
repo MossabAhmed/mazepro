@@ -531,3 +531,27 @@ class Maze():
             # If no frames were collected, generate frames now
             raise Exception("No frames available. Please solve the maze with frame collection enabled.")
         imageio.mimsave(gif_path, self.frames, fps=1000/frame_delay)
+
+    def save_to_file(self, filename="generated_maze.txt"):
+        """
+        Saves the current maze configuration to a text file.
+        'A' represents the start, 'B' represents the goal,
+        ' ' (space) represents a path, and '#' represents a wall.
+        """
+        try:
+            with open(filename, "w") as f:
+                for r in range(self.height):
+                    row_str = ""
+                    for c in range(self.width):
+                        if (r, c) == self.start:
+                            row_str += "A"
+                        elif (r, c) == self.goal:
+                            row_str += "B"
+                        elif self.walls[r][c]:
+                            row_str += "#"
+                        else:
+                            row_str += " "
+                    f.write(row_str + "\n")
+            print(f"Maze saved successfully to {filename}")
+        except Exception as e:
+            print(f"Error saving maze to file: {e}")
