@@ -56,6 +56,10 @@ class MazeSolverGUI:
         tk.Button(control_frame, text="Save Solution GIF", command=self.save_solution_gif).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Save maze to file", command=self.save_maze).pack(side=tk.LEFT, padx=5)
 
+        # Zoom controls
+        tk.Button(control_frame, text="Zoom In", command=self.zoom_in).pack(side=tk.LEFT, padx=5)
+        tk.Button(control_frame, text="Zoom Out", command=self.zoom_out).pack(side=tk.LEFT, padx=5)
+
         # Canvas with scrollbars for displaying the maze
         self.canvas_frame = tk.Frame(self.root)
         self.canvas_frame.pack(expand=True, fill=tk.BOTH)
@@ -109,7 +113,7 @@ class MazeSolverGUI:
     
     def adjust_canvas_size(self):
         # Adjust the canvas scroll region based on the maze size
-        if hasattr(self, 'maze'):
+        if hasattr(self, 'maze') and self.maze is not None:
             canvas_width = self.maze.width * self.cell_size
             canvas_height = self.maze.height * self.cell_size
             self.canvas.config(scrollregion=(0, 0, canvas_width, canvas_height))
@@ -220,9 +224,24 @@ class MazeSolverGUI:
         else:
             messagebox.showerror("Error", "Please save the file with a .txt extension.")
 
+    def zoom_in(self):
+        if self.maze is not None:
+            self.cell_size += 5  # Increase cell size
+            self.adjust_canvas_size()
+            self.draw_maze()
+            self.draw_solution() # Redraw solution if it exists
+
+    def zoom_out(self):
+        if self.maze is not None and self.cell_size > 5: # Prevent cell size from becoming too small
+            self.cell_size -= 5  # Decrease cell size
+            self.adjust_canvas_size()
+            self.draw_maze()
+            self.draw_solution() # Redraw solution if it exists
+
 if __name__ == "__main__":
     # Start the Tkinter main loop
     root = tk.Tk()
     root.geometry("800x600")
     app = MazeSolverGUI(root)
     root.mainloop()
+

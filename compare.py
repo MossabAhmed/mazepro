@@ -31,7 +31,7 @@ def main():
     header = ["Maze File", "Algorithm", "Heuristic", "Time Taken (s)", "States Explored", "Path Cost"]
     results.append(header)
 
-    num_runs_per_test = 3 # Number of runs for each test to get a more accurate average
+    num_runs_per_test = 1 # Number of runs for each test to get a more accurate average
 
     for maze_file_path in maze_files:
         if not os.path.exists(maze_file_path):

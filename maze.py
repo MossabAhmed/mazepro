@@ -64,7 +64,8 @@ class Maze():
 
     def generate_maze(self):
         """
-        Generates a maze using a Recursive Backtracking (DFS) algorithm.
+        Generates a maze using a Recursive Backtracking (DFS) algorithm,
+        then adds additional paths by randomly removing some walls.
         This sets self.walls, self.start, and self.goal.
         """
         # Initialize all cells as walls (True)
@@ -76,7 +77,7 @@ class Maze():
         # Stack for DFS
         stack = []
 
-        # Start from a random cell (ensure it's an odd coordinate for grid-based generation)
+        # Start from a random cell
         start_row = random.randrange(0, self.height, 2)
         start_col = random.randrange(0, self.width, 2)
         
@@ -114,6 +115,25 @@ class Maze():
                 stack.append((next_row, next_col))
             else:
                 stack.pop() # Backtrack
+
+        # --- Add multiple paths by randomly removing walls ---
+        # Iterate through all cells and consider removing walls to create loops
+        for r in range(1, self.height - 1):
+            for c in range(1, self.width - 1):
+                # Only consider internal walls
+                if self.walls[r][c]:
+                    # Check if removing this wall connects two already open paths
+                    # This is a simplified check, more robust would be to check connectivity
+                    # For now, if it's a wall and has open neighbors, consider removing it
+                    
+                    # Check horizontal wall
+                    if c + 1 < self.width and not self.walls[r][c-1] and not self.walls[r][c+1]:
+                        if random.random() < 0.1: # 10% chance to remove a wall
+                            self.walls[r][c] = False
+                    # Check vertical wall
+                    if r + 1 < self.height and not self.walls[r-1][c] and not self.walls[r+1][c]:
+                        if random.random() < 0.1: # 10% chance to remove a wall
+                            self.walls[r][c] = False
 
         # Set start and goal points randomly
         # Ensure start and goal are open cells and distinct
@@ -500,7 +520,9 @@ class Maze():
         img.save(filename)
 
     def get_state_image(self, cell_size=30):
-        """Returns a Tkinter PhotoImage of the current maze state"""
+        """
+        Returns a Tkinter PhotoImage of the current maze state
+        """
         img = Image.new("RGB", (self.width*cell_size, self.height*cell_size), "white")
         draw = ImageDraw.Draw(img)
     
@@ -555,3 +577,5 @@ class Maze():
             print(f"Maze saved successfully to {filename}")
         except Exception as e:
             print(f"Error saving maze to file: {e}")
+
+
