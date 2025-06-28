@@ -5,12 +5,13 @@ from maze import Maze  # Import Maze class directly
 
 def main():
     maze_files = [
-        "maze_examples/maze1.txt",
-        "maze_examples/maze2.txt",
-        "maze_examples/maze3.txt",
-        # Add all maze files you want to test here
+        "maze_examples/maze21.txt",
+        "maze_examples/maze31.txt",
+        "maze_examples/maze51.txt",
+        "maze_examples/maze71.txt",
+        "maze_examples/maze91.txt"
+    ] # Add all maze files you want to test here
         # Ensure these files are located in the 'maze_examples' directory
-    ]
 
     # Ensure the 'maze_examples' directory exists
     if not os.path.exists("maze_examples"):
